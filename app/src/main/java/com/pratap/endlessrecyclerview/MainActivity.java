@@ -20,7 +20,7 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView mRecyclerView;
     private DataAdapter mAdapter;
     private LinearLayoutManager mLayoutManager;
-
+    private int mStart=0,mEnd=20;
     private List<Student> studentList;
 
 
@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         tvEmptyView = (TextView) findViewById(R.id.empty_view);
         mRecyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
-        studentList = new ArrayList<Student>();
+        studentList = new ArrayList<>();
         handler = new Handler();
         if (toolbar != null) {
             setSupportActionBar(toolbar);
@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
-        loadData();
+        loadData(mStart,mEnd,false);
 
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
@@ -76,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
                 studentList.add(null);
                 mAdapter.notifyItemInserted(studentList.size() - 1);
 
+
                 handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
@@ -85,32 +86,28 @@ public class MainActivity extends AppCompatActivity {
                         //add items one by one
                         int start = studentList.size();
                         int end = start + 20;
-
-                        for (int i = start + 1; i <= end; i++) {
+                        loadData(start,end,true);
+                        /*for (int i = start + 1; i <= end; i++) {
                             studentList.add(new Student("Student " + i, "AndroidStudent" + i + "@gmail.com"));
                             mAdapter.notifyItemInserted(studentList.size());
-                        }
+                        }*/
                         mAdapter.setLoaded();
-                       //or you can add all at once but do not forget to call mAdapter.notifyDataSetChanged();
+
                     }
                 }, 2000);
-
             }
         });
-
     }
 
 
     // load initial data
-    private void loadData() {
+    private void loadData(int start,int end,boolean notifyadapter) {
 
-        for (int i = 1; i <= 20; i++) {
+        for (int i = start; i <= end; i++) {
             studentList.add(new Student("Student " + i, "androidstudent" + i + "@gmail.com"));
+            if(notifyadapter)
+                mAdapter.notifyItemInserted(studentList.size());
 
         }
-
-
     }
-
-
 }
