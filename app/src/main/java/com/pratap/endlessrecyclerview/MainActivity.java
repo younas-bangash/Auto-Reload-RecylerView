@@ -25,6 +25,7 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String TAG = "MainActivity";
     private Toolbar toolbar;
 
     private TextView tvEmptyView;
@@ -33,7 +34,9 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayoutManager mLayoutManager;
     private int mStart=0,mEnd=20;
     private List<Student> studentList;
+    private List<Student> mTempCheck;
     public static int pageNumber;
+    public int total_size=0;
 
 
     protected Handler handler;
@@ -47,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
         tvEmptyView = (TextView) findViewById(R.id.empty_view);
         mRecyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
         studentList = new ArrayList<>();
+        mTempCheck=new ArrayList<>();
         handler = new Handler();
         if (toolbar != null) {
             setSupportActionBar(toolbar);
@@ -59,28 +63,30 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.setLayoutManager(mLayoutManager);
         mAdapter = new DataAdapter(studentList, mRecyclerView);
         mRecyclerView.setAdapter(mAdapter);
-
-        GetGroupData(""+mStart,""+mEnd);
-
+        GetGroupData("" + mStart, "" + mEnd);
         mAdapter.setOnLoadMoreListener(new OnLoadMoreListener() {
             @Override
             public void onLoadMore() {
-                studentList.add(null);
-                mAdapter.notifyItemInserted(studentList.size() - 1);
-                int start = studentList.size();
-                int end = start + 20;
-                ++pageNumber;
-                GetGroupData(""+start,""+end);
+                if( mTempCheck.size()> 0) {
+                    studentList.add(null);
+                    mAdapter.notifyItemInserted(studentList.size() - 1);
+                    int start = pageNumber * 20;
+                    start = start + 1;
+                    ++ pageNumber;
+                    mTempCheck.clear();
+                    GetGroupData("" + start,""+ mEnd);
+                }
             }
         });
     }
 
-    public void GetGroupData(String LimitStart, String LimitEnd) {
+    public void GetGroupData(final String LimitStart, final String LimitEnd) {
         Map<String, String> params = new HashMap<>();
         params.put("LimitStart", LimitStart);
-        params.put("LimitEnd", LimitEnd);
+        params.put("Limit", LimitEnd);
+        params.put("pageNumber", String.valueOf(pageNumber));
         Custom_Volly_Request jsonObjReq = new Custom_Volly_Request(Request.Method.POST,
-                "autoload.php", params,
+                "https://gizbo.ae/GizboApp/gizbo_php_files/autoload.php", params,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
@@ -90,16 +96,24 @@ public class MainActivity extends AppCompatActivity {
                             JSONArray catalouge;
                             json_status = response.getInt("success");
                             if (json_status == 1) {
-                                if (pageNumber > 1) {
+
+                                Log.d("ResponseSuccess", "GetGroupData() called with: LimitStart = "+ pageNumber
+                                        + "[" + LimitStart + "], LimitEnd = [" + LimitEnd + "]");
+
+                                if (pageNumber > 1 ) {
                                     studentList.remove(studentList.size() - 1);
                                     mAdapter.notifyItemRemoved(studentList.size());
                                 }
                                 catalouge = response.getJSONArray("orders");
+                                total_size = total_size+catalouge.length();
                                 for (int i = 0; i < catalouge.length(); i++) {
                                     JSONObject jobj = catalouge.getJSONObject(i);
                                     Student st;
                                     st= new Student(jobj.getString("bname"),"");
-                                    studentList.add(st);
+                                    if(! mTempCheck.contains(st))
+                                        mTempCheck.add(st);
+                                    if(! studentList.contains(st))
+                                        studentList.add(st);
                                     handler.post(new Runnable() {
                                         @Override
                                         public void run() {
@@ -107,25 +121,12 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     });
                                 }
-                                mAdapter.setLoaded();
+                            }else{
+                                studentList.remove(studentList.size() - 1);
+                                mAdapter.notifyItemRemoved(studentList.size());
                             }
 
-//                            mAdapter = new BuyPropertyAdapter(mResult,getApplicationContext());
-//                            recyclerView.setAdapter(mAdapter);
-//                            pDialog.setVisibility(View.GONE);
-//                            mAdapter.setOnItemClickListener(new BuyPropertyAdapter.MyClickListener() {
-//                                @Override
-//                                public void onItemClick(int position, View v) {
-//                                    if(mMixCatalougeCheck){
-//                                        Intent a1 = new Intent(CustomizeCatalougeMainActivity.this, MixCatalougeMainActivity.class);
-//                                        a1.putExtra("HeadCategory",mResult.get(position).getmHeadCategory());
-//                                        a1.putExtra("CollectionID",mResult.get(position).getMcollection_id());
-//                                        a1.putExtra("BrandName", mBrandName);
-//                                        a1.putExtra("BrandID", mBrandID);
-//                                        startActivity(a1);
-//                                    }
-//                                }
-//                            });
+                            mAdapter.setLoaded(false);
                         }
                         catch (JSONException e) {
                             Log.d("ResponseError",e.toString());

@@ -25,31 +25,19 @@ public class DataAdapter extends RecyclerView.Adapter {
 	private boolean loading;
 	private OnLoadMoreListener onLoadMoreListener;
 
-	
+
 
 	public DataAdapter(List<Student> students, RecyclerView recyclerView) {
 		studentList = students;
-
 		if (recyclerView.getLayoutManager() instanceof LinearLayoutManager) {
-
-			final LinearLayoutManager linearLayoutManager = (LinearLayoutManager) recyclerView
-					.getLayoutManager();
-
-
-					recyclerView
-					.addOnScrollListener(new RecyclerView.OnScrollListener() {
+			final LinearLayoutManager linearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+					recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
 						@Override
-						public void onScrolled(RecyclerView recyclerView,
-											   int dx, int dy) {
+						public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
 							super.onScrolled(recyclerView, dx, dy);
-
 							totalItemCount = linearLayoutManager.getItemCount();
-							lastVisibleItem = linearLayoutManager
-									.findLastVisibleItemPosition();
-							if (!loading
-									&& totalItemCount <= (lastVisibleItem + visibleThreshold)) {
-								// End has been reached
-								// Do something
+							lastVisibleItem = linearLayoutManager.findLastVisibleItemPosition();
+							if (! loading && totalItemCount <= (lastVisibleItem + visibleThreshold)) {
 								if (onLoadMoreListener != null) {
 									onLoadMoreListener.onLoadMore();
 								}
@@ -62,22 +50,18 @@ public class DataAdapter extends RecyclerView.Adapter {
 
 	@Override
 	public int getItemViewType(int position) {
-		return studentList.get(position) != null ? VIEW_ITEM : VIEW_PROG;
+
+            return studentList.get(position) != null ? VIEW_ITEM : VIEW_PROG;
 	}
 
 	@Override
-	public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent,
-			int viewType) {
+	public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 		RecyclerView.ViewHolder vh;
 		if (viewType == VIEW_ITEM) {
-			View v = LayoutInflater.from(parent.getContext()).inflate(
-					R.layout.list_row, parent, false);
-
+			View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row, parent, false);
 			vh = new StudentViewHolder(v);
 		} else {
-			View v = LayoutInflater.from(parent.getContext()).inflate(
-					R.layout.progress_item, parent, false);
-
+			View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.progress_item, parent, false);
 			vh = new ProgressViewHolder(v);
 		}
 		return vh;
@@ -86,22 +70,17 @@ public class DataAdapter extends RecyclerView.Adapter {
 	@Override
 	public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
 		if (holder instanceof StudentViewHolder) {
-			
-			Student singleStudent= (Student) studentList.get(position);
-			
+			Student singleStudent=studentList.get(position);
 			((StudentViewHolder) holder).tvName.setText(singleStudent.getName());
-			
 			((StudentViewHolder) holder).tvEmailId.setText(singleStudent.getEmailId());
-			
 			((StudentViewHolder) holder).student= singleStudent;
-			
 		} else {
 			((ProgressViewHolder) holder).progressBar.setIndeterminate(true);
 		}
 	}
 
-	public void setLoaded() {
-		loading = false;
+	public void setLoaded(boolean state) {
+		loading = state;
 	}
 
 	@Override
@@ -125,17 +104,17 @@ public class DataAdapter extends RecyclerView.Adapter {
 		public StudentViewHolder(View v) {
 			super(v);
 			tvName = (TextView) v.findViewById(R.id.tvName);
-			
+
 			tvEmailId = (TextView) v.findViewById(R.id.tvEmailId);
-			
+
 			v.setOnClickListener(new OnClickListener() {
-				
+
 				@Override
 				public void onClick(View v) {
 					Toast.makeText(v.getContext(),
 							"OnClick :" + student.getName() + " \n "+student.getEmailId(),
 							Toast.LENGTH_SHORT).show();
-					
+
 				}
 			});
 		}
