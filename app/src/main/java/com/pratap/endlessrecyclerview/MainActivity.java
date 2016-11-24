@@ -84,9 +84,8 @@ public class MainActivity extends AppCompatActivity {
         Map<String, String> params = new HashMap<>();
         params.put("LimitStart", LimitStart);
         params.put("Limit", LimitEnd);
-        params.put("pageNumber", String.valueOf(pageNumber));
         Custom_Volly_Request jsonObjReq = new Custom_Volly_Request(Request.Method.POST,
-                "https://gizbo.ae/GizboApp/gizbo_php_files/autoload.php", params,
+                "Your php file link", params,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
